@@ -1,0 +1,44 @@
+header {
+  background: rgb(123, 210, 238);
+  padding: 20px;
+  text-align: center;
+}
+
+header input {
+  width: 50ch;
+  font-size: 18px;
+  padding: 5px;
+}
+
+main {
+  padding: 20px;
+}
+
+ul {
+  display:flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  list-style: none;
+}
+
+li {
+  width: 20%;
+  padding: 10px;
+}
+
+li:hover {
+  background: #ccc;
+  cursor: pointer;
+}
+
+li p {
+  font-size: 24px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+li img {
+  width: 100%;
+}
