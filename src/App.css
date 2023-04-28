@@ -14,24 +14,24 @@ main {
   padding: 20px;
 }
 
-ul {
+.listaDeFilmes {
   display:flex;
   flex-wrap: wrap;
   gap: 20px;
   list-style: none;
 }
 
-li {
+.listaDeFilmes li {
   width: 20%;
   padding: 10px;
 }
 
-li:hover {
+.listaDeFilmes li:hover {
   background: #ccc;
   cursor: pointer;
 }
 
-li p {
+.listaDeFilmes li p {
   font-size: 24px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -39,6 +39,28 @@ li p {
   margin-bottom: 10px;
 }
 
-li img {
+.listaDeFilmes li img {
   width: 100%;
+}
+
+.paginas {
+  text-align: center;
+}
+
+.paginas span {
+  margin: 20px;
+}
+
+.paginas button {
+  padding: 5px 20px;
+  cursor: pointer;
+}
+
+.filme-info {
+  display: flex;
+  gap: 30px;
+}
+
+.info-block {
+  margin-bottom: 20px;
 }
