@@ -22,7 +22,7 @@ main {
 }
 
 .listaDeFilmes li {
-  width: 20%;
+  width: clamp(100px, 20%, 200px);
   padding: 10px;
 }
 

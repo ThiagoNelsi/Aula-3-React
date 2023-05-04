@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
-import { AiFillStar, AiOutlineStar } from 'react-icons/ai'
+import { Link } from 'react-router-dom'
+import { AiFillStar, AiOutlineStar, AiFillHeart, AiOutlineHeart } from 'react-icons/ai'
+import { API_KEY, BASE_URL } from '../../config/api.json'
+import Modal from '../../components/Modal'
+import './Home.css'
 
-import Modal from './components/Modal'
-import './App.css'
-
-function App() {
-
-  const BASE_URL = "https://www.omdbapi.com/?apikey=<sua_api_key>"
+function Home() {
+  const url = `${BASE_URL}/?apikey=${API_KEY}`;
   let searchTimeout = setTimeout(() => { }, 0);
 
   const [filmes, setFilmes] = useState([]);
@@ -15,9 +15,10 @@ function App() {
   const [numeroDePaginas, setNumeroDePaginas] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [filmeSelecionado, setFilmeSelecionado] = useState({});
+  const [listaDeFavoritos, setListaDeFavoritos] = useState(JSON.parse(localStorage.getItem('listaDeFavoritos')) || []);
 
   useEffect(() => {
-    fetch(`${BASE_URL}&s=${valorInput}&page=${pagina}`)
+    fetch(`${url}&s=${valorInput}&page=${pagina}`)
       .then(resposta => resposta.json())
       .then(resposta => setFilmes(resposta.Search || []));
   }, [pagina]);
@@ -28,7 +29,7 @@ function App() {
     clearTimeout(searchTimeout);
 
     searchTimeout = setTimeout(() => {
-      fetch(`${BASE_URL}&s=${evento.target.value}`)
+      fetch(`${url}&s=${evento.target.value}`)
         .then(resposta => resposta.json())
         .then(resposta => {
           setFilmes(resposta.Search || []);
@@ -49,7 +50,7 @@ function App() {
   }
 
   function openModal(id) {
-    fetch(`${BASE_URL}&i=${id}`)
+    fetch(`${url}&i=${id}`)
       .then(response => response.json())
       .then(response => {
         setFilmeSelecionado(response);
@@ -59,6 +60,26 @@ function App() {
 
   function closeModal() {
     setIsOpen(false);
+  }
+
+  function adicionarFavorito(evento, id) {
+    evento.stopPropagation();
+
+    const lista = [...listaDeFavoritos, id];
+    const stringLista = JSON.stringify(lista);
+
+    setListaDeFavoritos(lista);
+    localStorage.setItem('listaDeFavoritos', stringLista);
+  }
+
+  function removerFavorito(evento, id) {
+    evento.stopPropagation();
+
+    const lista = listaDeFavoritos.filter(filme => filme !== id);
+    const stringLista = JSON.stringify(lista);
+
+    setListaDeFavoritos(lista);
+    localStorage.setItem('listaDeFavoritos', stringLista);
   }
 
   return (
@@ -99,6 +120,8 @@ function App() {
                 }
               </ul>
             </div>
+            {/* <a href={`/detalhes/${filmeSelecionado.imdbID}`}>Mais detalhes</a> */}
+            <Link to={`/detalhes/${filmeSelecionado.imdbID}`}>Mais detalhes</Link>
           </div>
         </div>
       </Modal>
@@ -117,13 +140,18 @@ function App() {
                 <li key={filme.imdbID} onClick={() => openModal(filme.imdbID)}>
                   <p>{filme.Title}</p>
                   <img src={filme.Poster} alt="Poster do filme" />
+                  {
+                    listaDeFavoritos.includes(filme.imdbID)
+                      ? <AiFillHeart color="red" onClick={(evento) => removerFavorito(evento, filme.imdbID)} />
+                      : <AiOutlineHeart color="red" onClick={(evento) => adicionarFavorito(evento, filme.imdbID)} />
+                  }
                 </li>
               ))
             }
           </ul>
           <div className="paginas">
             <button onClick={paginaAnterior}>{"<"}</button>
-            <span>{pagina}</span>
+            <span>{pagina} / {numeroDePaginas} </span>
             <button onClick={proximaPagina}>{">"}</button>
           </div>
         </main>
@@ -132,6 +160,6 @@ function App() {
   )
 }
 
-export default App
+export default Home
 
 
