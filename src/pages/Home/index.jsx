@@ -1,31 +1,38 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { AiFillStar, AiOutlineStar, AiFillHeart, AiOutlineHeart } from 'react-icons/ai'
+import { AiFillStar, AiOutlineStar } from 'react-icons/ai'
 import { API_KEY, BASE_URL } from '../../config/api.json'
 import Modal from '../../components/Modal'
 import './Home.css'
+import Header from '../../components/Header'
+import buscarFilme from '../../services/buscarFilme'
+import ListaDeFilmes from '../../components/ListaDeFilmes'
 
 function Home() {
   const url = `${BASE_URL}/?apikey=${API_KEY}`;
   let searchTimeout = setTimeout(() => { }, 0);
 
+  const inputRef = useRef(null);
+
   const [filmes, setFilmes] = useState([]);
   const [pagina, setPagina] = useState(1);
-  const [valorInput, setValorInput] = useState("");
   const [numeroDePaginas, setNumeroDePaginas] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [filmeSelecionado, setFilmeSelecionado] = useState({});
   const [listaDeFavoritos, setListaDeFavoritos] = useState(JSON.parse(localStorage.getItem('listaDeFavoritos')) || []);
 
   useEffect(() => {
-    fetch(`${url}&s=${valorInput}&page=${pagina}`)
+    fetch(`${url}&s=${inputRef.current.value}&page=${pagina}`)
       .then(resposta => resposta.json())
       .then(resposta => setFilmes(resposta.Search || []));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pagina]);
 
-  function pesquisar(evento) {
-    setValorInput(evento.target.value);
+  useEffect(() => {
+    console.log('A página renderizou');
+  })
 
+  function pesquisar(evento) {
     clearTimeout(searchTimeout);
 
     searchTimeout = setTimeout(() => {
@@ -50,10 +57,9 @@ function Home() {
   }
 
   function openModal(id) {
-    fetch(`${url}&i=${id}`)
-      .then(response => response.json())
-      .then(response => {
-        setFilmeSelecionado(response);
+    buscarFilme(id)
+      .then(resposta => {
+        setFilmeSelecionado(resposta);
         setIsOpen(true);
       });
   }
@@ -80,6 +86,10 @@ function Home() {
 
     setListaDeFavoritos(lista);
     localStorage.setItem('listaDeFavoritos', stringLista);
+  }
+
+  function trocarCorDoInput() {
+    inputRef.current.style.background = 'red';
   }
 
   return (
@@ -126,29 +136,22 @@ function Home() {
         </div>
       </Modal>
       <div>
-        <header>
+        <Header>
           <input
+            ref={inputRef}
             type="text"
             onChange={pesquisar}
-            value={valorInput}
           />
-        </header>
+        </Header>
+        <button onClick={trocarCorDoInput}>Trocar cor do header</button>
         <main>
-          <ul className='listaDeFilmes'>
-            {
-              filmes.map(filme => (
-                <li key={filme.imdbID} onClick={() => openModal(filme.imdbID)}>
-                  <p>{filme.Title}</p>
-                  <img src={filme.Poster} alt="Poster do filme" />
-                  {
-                    listaDeFavoritos.includes(filme.imdbID)
-                      ? <AiFillHeart color="red" onClick={(evento) => removerFavorito(evento, filme.imdbID)} />
-                      : <AiOutlineHeart color="red" onClick={(evento) => adicionarFavorito(evento, filme.imdbID)} />
-                  }
-                </li>
-              ))
-            }
-          </ul>
+          <ListaDeFilmes
+            filmes={filmes}
+            openModal={openModal}
+            removerFavorito={removerFavorito}
+            adicionarFavorito={adicionarFavorito}
+            listaDeFavoritos={listaDeFavoritos}
+          />
           <div className="paginas">
             <button onClick={paginaAnterior}>{"<"}</button>
             <span>{pagina} / {numeroDePaginas} </span>

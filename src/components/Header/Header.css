@@ -1,0 +1,13 @@
+.header-component {
+  background: rgb(123, 210, 238);
+  padding: 20px;
+  text-align: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.header-component ul {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}

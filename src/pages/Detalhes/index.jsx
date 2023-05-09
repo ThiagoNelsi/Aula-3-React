@@ -1,31 +1,23 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom'
-import { API_KEY, BASE_URL } from '../../config/api.json'
+import Header from '../../components/Header';
+import buscarFilme from '../../services/buscarFilme';
 
 function Detalhes() {
-  const url = `${BASE_URL}/?apikey=${API_KEY}`;
-
   const { id } = useParams();
 
   const [filme, setFilme] = useState({});
 
   useEffect(() => {
-    buscarDados();
+     buscarFilme(id)
+      .then(resposta => {
+        setFilme(resposta)
+      })
   }, [])
-
-  function buscarDados() {
-    fetch(`${url}&i=${id}`)
-      .then(response => response.json())
-      .then(response => {
-        setFilme(response);
-      });
-  }
 
   return (
     <div>
-      <header>
-        LOGO
-      </header>
+      <Header />
 
       <main>
         <h1>{filme.Title}</h1>

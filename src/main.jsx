@@ -6,6 +6,7 @@ import Home from './pages/Home'
 import Detalhes from './pages/Detalhes'
 import ErrorPage from './pages/ErrorPage'
 import './index.css'
+import Favoritos from './pages/Favoritos'
 
 const router = createBrowserRouter([
   {
@@ -16,11 +17,13 @@ const router = createBrowserRouter([
   {
     path: '/detalhes/:id',
     element: <Detalhes />
+  },
+  {
+    path: '/favoritos',
+    element: <Favoritos />
   }
 ]);
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <RouterProvider router={router} />
-  </React.StrictMode>,
+  <RouterProvider router={router} />
 )
