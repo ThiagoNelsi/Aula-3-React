@@ -1,12 +1,15 @@
-import { useState, useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
-import { AiFillStar, AiOutlineStar } from 'react-icons/ai'
+import { useState, useEffect, useRef, useContext } from 'react'
+
 import { API_KEY, BASE_URL } from '../../config/api.json'
-import Modal from '../../components/Modal'
-import './Home.css'
 import Header from '../../components/Header'
-import buscarFilme from '../../services/buscarFilme'
 import ListaDeFilmes from '../../components/ListaDeFilmes'
+import buscarFilme from '../../services/buscarFilme'
+
+import { Context } from '../../context'
+
+import './Home.css'
+import Spinner from '../../components/Spinner'
+import ModalDetalhes from '../../components/ModalDetalhes'
 
 function Home() {
   const url = `${BASE_URL}/?apikey=${API_KEY}`;
@@ -14,34 +17,36 @@ function Home() {
 
   const inputRef = useRef(null);
 
+  const { setFilmeSelecionado } = useContext(Context);
+
   const [filmes, setFilmes] = useState([]);
   const [pagina, setPagina] = useState(1);
   const [numeroDePaginas, setNumeroDePaginas] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
-  const [filmeSelecionado, setFilmeSelecionado] = useState({});
   const [listaDeFavoritos, setListaDeFavoritos] = useState(JSON.parse(localStorage.getItem('listaDeFavoritos')) || []);
+  const [carregandoModal, setCarregandoModal] = useState(false);
+  const [carregandoFilmes, setCarregandoFilmes] = useState(false);
 
   useEffect(() => {
     fetch(`${url}&s=${inputRef.current.value}&page=${pagina}`)
       .then(resposta => resposta.json())
       .then(resposta => setFilmes(resposta.Search || []));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pagina]);
 
-  useEffect(() => {
-    console.log('A página renderizou');
-  })
-
   function pesquisar(evento) {
+    setCarregandoFilmes(false);
     clearTimeout(searchTimeout);
 
     searchTimeout = setTimeout(() => {
+      setCarregandoFilmes(true);
       fetch(`${url}&s=${evento.target.value}`)
         .then(resposta => resposta.json())
         .then(resposta => {
           setFilmes(resposta.Search || []);
           setPagina(1);
           setNumeroDePaginas(Math.ceil(resposta.totalResults / 10));
+          setCarregandoFilmes(false);
         });
     }, 500);
   }
@@ -57,10 +62,12 @@ function Home() {
   }
 
   function openModal(id) {
+    setIsOpen(true);
+    setCarregandoModal(true);
     buscarFilme(id)
       .then(resposta => {
         setFilmeSelecionado(resposta);
-        setIsOpen(true);
+        setCarregandoModal(false);
       });
   }
 
@@ -88,53 +95,13 @@ function Home() {
     localStorage.setItem('listaDeFavoritos', stringLista);
   }
 
-  function trocarCorDoInput() {
-    inputRef.current.style.background = 'red';
-  }
-
   return (
     <>
-      <Modal titulo={filmeSelecionado.Title} isOpen={isOpen} closeModal={closeModal}>
-        <div className="filme-info">
-          <img src={filmeSelecionado.Poster} alt="Poster do filme" />
-          <div>
-            <div className="info-block">
-              <h3>Trama</h3>
-              <p>{filmeSelecionado.Plot}</p>
-            </div>
-            <div className="info-block">
-              <h3>Nota</h3>
-              {
-                Array(10).fill(0).map((valor, indice) => (
-                  (indice + 1) <= Math.ceil(filmeSelecionado.imdbRating)
-                    ? <AiFillStar key={indice} color='#FFD700' />
-                    : <AiOutlineStar key={indice} />
-                ))
-              }
-            </div>
-            <div className="info-block">
-              <h3>Data de lançamento</h3>
-              <p>{filmeSelecionado.Released}</p>
-            </div>
-            <div className="info-block">
-              <h3>Gênero</h3>
-              <p>{filmeSelecionado.Genre}</p>
-            </div>
-            <div className="info-block">
-              <h3>Atores</h3>
-              <ul>
-                {
-                  filmeSelecionado.Actors?.split(', ').map(nome => (
-                    <li key={nome}>{nome}</li>
-                  ))
-                }
-              </ul>
-            </div>
-            {/* <a href={`/detalhes/${filmeSelecionado.imdbID}`}>Mais detalhes</a> */}
-            <Link to={`/detalhes/${filmeSelecionado.imdbID}`}>Mais detalhes</Link>
-          </div>
-        </div>
-      </Modal>
+      <ModalDetalhes
+        isOpen={isOpen}
+        closeModal={closeModal}
+        carregandoModal={carregandoModal}
+      />
       <div>
         <Header>
           <input
@@ -143,15 +110,17 @@ function Home() {
             onChange={pesquisar}
           />
         </Header>
-        <button onClick={trocarCorDoInput}>Trocar cor do header</button>
         <main>
-          <ListaDeFilmes
-            filmes={filmes}
-            openModal={openModal}
-            removerFavorito={removerFavorito}
-            adicionarFavorito={adicionarFavorito}
-            listaDeFavoritos={listaDeFavoritos}
-          />
+          {carregandoFilmes
+            ? <Spinner />
+            : <ListaDeFilmes
+              filmes={filmes}
+              openModal={openModal}
+              removerFavorito={removerFavorito}
+              adicionarFavorito={adicionarFavorito}
+              listaDeFavoritos={listaDeFavoritos}
+            />
+          }
           <div className="paginas">
             <button onClick={paginaAnterior}>{"<"}</button>
             <span>{pagina} / {numeroDePaginas} </span>

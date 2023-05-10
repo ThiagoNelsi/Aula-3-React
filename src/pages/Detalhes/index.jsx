@@ -1,19 +1,23 @@
-import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom'
+import { useContext, useEffect } from 'react';
 import Header from '../../components/Header';
+import { Context } from '../../context';
 import buscarFilme from '../../services/buscarFilme';
+import { useParams } from 'react-router-dom';
+import Spinner from '../../components/Spinner';
 
 function Detalhes() {
-  const { id } = useParams();
+  const { id } = useParams()
 
-  const [filme, setFilme] = useState({});
+  const { filmeSelecionado: filme, setFilmeSelecionado } = useContext(Context);
 
   useEffect(() => {
-     buscarFilme(id)
-      .then(resposta => {
-        setFilme(resposta)
-      })
-  }, [])
+    if (!filme) {
+      buscarFilme(id)
+        .then(resposta => setFilmeSelecionado(resposta))
+    }
+  }, []);
+
+  if (filme === null) return <Spinner />
 
   return (
     <div>
